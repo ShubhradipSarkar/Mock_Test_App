@@ -35,7 +35,8 @@ function Clock() {
 function Page() {
   const uri = useParams();
   console.log(uri);
-
+  const [optionselected, setoptionselected] = useState(false);
+  const [optionColor, setoptionColor] = useState([10, 10, 10, 10, 10]);
   const [questionNumber, setQuestionNumber] = useState(0);
   const [questions, setQuestions] = useState([
     ["2+3 = ?", ["5", "3", "4", "6"]],
@@ -44,15 +45,51 @@ function Page() {
     ["12+13 = ?", ["25", "13", "64", "36"]],
     ["22+13 = ?", ["35", "34", "43", "46"]],
   ]);
-
+  const [answers, setAnswers] = useState([
+    "unvisited",
+    "unvisited",
+    "unvisited",
+    "unvisited",
+    "unvisited",
+  ]);
+  const [filter, setFilter] = useState("All");
   const handleNextQuestion = () => {
     if (questionNumber < questions.length - 1) {
       setQuestionNumber(questionNumber + 1);
+      setoptionselected(false);
     }
   };
+
   const handlePrevQuestion = () => {
     if (questionNumber > 0) {
       setQuestionNumber(questionNumber - 1);
+    }
+  };
+
+  const saveOptionSelected = (optionIndex, questionNumber) => {
+    setoptionColor((prev) => {
+      const pushOption = [...prev];
+      pushOption[questionNumber] = optionIndex;
+      return pushOption;
+    });
+    console.log(optionColor);
+  };
+
+  const answered = (questionNumber) => {
+    if (optionselected) {
+      setAnswers((prevAnswers) => {
+        const newAnswers = [...prevAnswers];
+        newAnswers[questionNumber] = "answered";
+        return newAnswers;
+      });
+      console.log(answers);
+    } else {
+      setAnswers((prevAnswers) => {
+        const newAnswers = [...prevAnswers];
+        newAnswers[questionNumber] = "skipped";
+        return newAnswers;
+      });
+      console.log(answers);
     }
   };
 
@@ -71,7 +108,18 @@ function Page() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
-
+  const filteredQuestions = () => {
+    switch (filter) {
+      case "Attempted":
+        return answers.map((ans, index) => ans === "answered" ? index : null).filter(index => index !== null);
+      case "Skipped":
+        return answers.map((ans, index) => ans === "skipped" ? index : null).filter(index => index !== null);
+      case "Marked":
+        return answers.map((ans, index) => ans === "marked" ? index : null).filter(index => index !== null);
+      default:
+        return questions.map((_, index) => index);
+    }
+  };
   return (
     <div className="flex">
       <div className="fixed w-3/4 overflow-y-auto top-0 h-screen">
@@ -94,7 +142,18 @@ function Page() {
                   >
                     {optionIndex + 1}
                   </div>
-                  <button className="shadow-md bg-white font-bold w-80 m-2 p-2 rounded">
+                  <button
+                    onClick={() => {
+                      setoptionselected(true);
+                      saveOptionSelected(optionIndex, questionNumber);
+                      // answered(questionNumber);
+                    }}
+                    className={`shadow-md font-bold w-80 m-2 p-2 rounded ${
+                      optionColor[questionNumber] === optionIndex
+                        ? "bg-green-500"
+                        : "bg-white"
+                    }`}
+                  >
                     {option}
                   </button>
                 </li>
@@ -109,13 +168,27 @@ function Page() {
               Previous question
             </button>
             <button
-              onClick={handlePrevQuestion}
+              onClick={() => {
+                // Mark the current question
+                setAnswers((prevAnswers) => {
+                  const newAnswers = [...prevAnswers];
+                  newAnswers[questionNumber] = "marked";
+
+                  handleNextQuestion();
+                  return newAnswers;
+                });
+                console.log(answers);
+              }}
               className="p-2 text-white font-bold bg-blue-500 rounded"
             >
               Mark for later
             </button>
             <button
-              onClick={handleNextQuestion}
+              onClick={() => {
+                answered(questionNumber);
+                setoptionselected(false);
+                handleNextQuestion();
+              }}
               className="p-2 text-white font-bold bg-blue-500 rounded"
             >
               Save and Next
@@ -126,22 +199,28 @@ function Page() {
 
       <div className="flex-1 w-1/4 bg-slate-900 overflow-y-auto h-screen fixed right-0 top-0">
         <div className="fixed bg-slate-900 flex flex-row flex-wrap justify-center items-center gap-2 m-2">
-          <button className="p-2 bg-slate-100 text-black text-sm font-bold rounded">
+          <button
+            onClick={() => setFilter("All")}
+            className="p-2 bg-slate-100 text-black text-sm font-bold rounded"
+          >
             All
           </button>
           <button
+            onClick={() => setFilter("Attempted")}
             className="p-2 bg-slate-100 text-white text-sm font-bold rounded"
             style={{ backgroundColor: "#04fa5e" }}
           >
             Attempted
           </button>
           <button
+            onClick={() => setFilter("Skipped")}
             className="p-2 bg-slate-100 text-white text-sm font-bold rounded"
             style={{ backgroundColor: "#fa0478" }}
           >
             Skipped
           </button>
           <button
+            onClick={() => setFilter("Marked")}
             className="p-2 bg-slate-100 text-white text-sm font-bold rounded"
             style={{ backgroundColor: "#9204fa" }}
           >
@@ -149,12 +228,25 @@ function Page() {
           </button>
         </div>
         <div className="flex flex-row flex-wrap justify-center items-center gap-2 mt-16">
-          {Array.from({ length: 130 }, (_, index) => (
+          {filteredQuestions().map((index) => (
             <div
               key={index}
-              className="flex items-center justify-center bg-green-500 m-2 text-white font-bold rounded-lg h-10 w-10"
+              className={`flex items-center justify-center m-2 text-white font-bold rounded-lg h-10 w-10 ${
+                answers[index] === "answered"
+                  ? "bg-green-500"
+                  : answers[index] === "marked"
+                  ? "bg-purple-500"
+                  : answers[index] === "skipped"
+                  ? "bg-red-500"
+                  : "bg-gray-500"
+              } ${index === questionNumber ? "border-2 border-cyan-500" : ""}`}
             >
-              <div className="p-3">{index + 1}</div>
+              <div
+                className="p-3 cursor-pointer"
+                onClick={() => setQuestionNumber(index)}
+              >
+                {index + 1}
+              </div>
             </div>
           ))}
         </div>
