@@ -2,35 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-
-function Clock() {
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsElapsed((prevSeconds) => prevSeconds + 1);
-    }, 1000);
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-    return `${minutes}:${seconds}`;
-  };
-
-  return (
-    <div className="text-black bg-white mx-4 m-2">
-      <h2 className="bg-slate-500 p-2 rounded-lg font-bold text-white">
-        Time: {formatTime(secondsElapsed)}
-      </h2>
-    </div>
-  );
-}
+import Clock from '@/app/components/Clock'
 
 function Page() {
   const uri = useParams();
@@ -59,7 +31,11 @@ function Page() {
       setoptionselected(false);
     }
   };
-
+    function decodeUrlMessage(encodedUrl) {
+        // Use decodeURIComponent to decode the URL-encoded string
+        const decodedMessage = decodeURIComponent(encodedUrl);
+        return decodedMessage;
+    }
   const handlePrevQuestion = () => {
     if (questionNumber > 0) {
       setQuestionNumber(questionNumber - 1);
@@ -124,14 +100,14 @@ function Page() {
     <div className="flex">
       <div className="fixed w-3/4 overflow-y-auto top-0 h-screen">
         <div className="fixed top-0 w-3/4 bg-white flex justify-between">
-          <h1 className="bg-white m-2 p-2 text-black font-bold">{uri.exam}</h1>
+          <h1 className="bg-white m-2 p-2 text-black font-bold">{decodeUrlMessage(uri.exam)}</h1>
           <Clock />
         </div>
         <div className="flex flex-col bg-slate-100 text-black min-h-screen">
           <div className="mb-4 mt-20">
-            <h2>
-              Question {questionNumber + 1}
-              {")"} {questions[questionNumber][0]}
+            <h2 className="flex flex-row flex-wrap">
+              <div className="text-gray-400 m-2 p-2">Question - {questionNumber + 1} {")"}</div>
+               <div className="font-bold text-2xl m-2 p-2">{questions[questionNumber][0]}</div>
             </h2>
             <ul className="mt-8 mb-12 flex flex-row flex-wrap">
               {questions[questionNumber][1].map((option, optionIndex) => (
