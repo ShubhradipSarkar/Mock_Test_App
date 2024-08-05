@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import Clock from '@/app/components/Clock'
-
+import Clock from "@/app/components/Clock";
+import Link from "next/link";
 function Page() {
   const uri = useParams();
   console.log(uri);
@@ -25,17 +25,20 @@ function Page() {
     "unvisited",
   ]);
   const [filter, setFilter] = useState("All");
+  const [triedToSubmit, setTriedToSubmit] = useState(false);
   const handleNextQuestion = () => {
     if (questionNumber < questions.length - 1) {
       setQuestionNumber(questionNumber + 1);
       setoptionselected(false);
     }
   };
-    function decodeUrlMessage(encodedUrl) {
-        // Use decodeURIComponent to decode the URL-encoded string
-        const decodedMessage = decodeURIComponent(encodedUrl);
-        return decodedMessage;
-    }
+
+  function decodeUrlMessage(encodedUrl) {
+    // Use decodeURIComponent to decode the URL-encoded string
+    const decodedMessage = decodeURIComponent(encodedUrl);
+    return decodedMessage;
+  }
+
   const handlePrevQuestion = () => {
     if (questionNumber > 0) {
       setQuestionNumber(questionNumber - 1);
@@ -84,30 +87,44 @@ function Page() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
+
   const filteredQuestions = () => {
     switch (filter) {
       case "Attempted":
-        return answers.map((ans, index) => ans === "answered" ? index : null).filter(index => index !== null);
+        return answers
+          .map((ans, index) => (ans === "answered" ? index : null))
+          .filter((index) => index !== null);
       case "Skipped":
-        return answers.map((ans, index) => ans === "skipped" ? index : null).filter(index => index !== null);
+        return answers
+          .map((ans, index) => (ans === "skipped" ? index : null))
+          .filter((index) => index !== null);
       case "Marked":
-        return answers.map((ans, index) => ans === "marked" ? index : null).filter(index => index !== null);
+        return answers
+          .map((ans, index) => (ans === "marked" ? index : null))
+          .filter((index) => index !== null);
       default:
         return questions.map((_, index) => index);
     }
   };
+
   return (
     <div className="flex">
       <div className="fixed w-3/4 overflow-y-auto top-0 h-screen">
         <div className="fixed top-0 w-3/4 bg-white flex justify-between">
-          <h1 className="bg-white m-2 p-2 text-black font-bold">{decodeUrlMessage(uri.exam)}</h1>
+          <h1 className="bg-white m-2 p-2 text-black font-bold">
+            {decodeUrlMessage(uri.exam)}
+          </h1>
           <Clock />
         </div>
         <div className="flex flex-col bg-slate-100 text-black min-h-screen">
           <div className="mb-4 mt-20">
             <h2 className="flex flex-row flex-wrap">
-              <div className="text-gray-400 m-2 p-2">Question - {questionNumber + 1} {")"}</div>
-               <div className="font-bold text-2xl m-2 p-2">{questions[questionNumber][0]}</div>
+              <div className="text-gray-400 m-2 p-2">
+                Question - {questionNumber + 1} {")"}
+              </div>
+              <div className="font-bold text-2xl m-2 p-2">
+                {questions[questionNumber][0]}
+              </div>
             </h2>
             <ul className="mt-8 mb-12 flex flex-row flex-wrap">
               {questions[questionNumber][1].map((option, optionIndex) => (
@@ -139,7 +156,10 @@ function Page() {
           <div className="flex justify-between p-4 w-3/4 mx-auto fixed bottom-0">
             <button
               onClick={handlePrevQuestion}
-              className="p-2 text-white font-bold bg-blue-500 rounded"
+              className={`p-2 text-white font-bold ${
+                questionNumber === 0 ? "bg-gray-400" : "bg-blue-500"
+              } rounded`}
+              disabled={questionNumber === 0}
             >
               Previous question
             </button>
@@ -165,9 +185,13 @@ function Page() {
                 setoptionselected(false);
                 handleNextQuestion();
               }}
-              className="p-2 text-white font-bold bg-blue-500 rounded"
+              className={`p-2 text-white font-bold rounded bg-blue-500
+              }`}
+              // disabled={questionNumber === questions.length - 1}
             >
-              Save and Next
+              {questionNumber === questions.length - 1
+                ? "Save"
+                : "Save and Next"}
             </button>
           </div>
         </div>
@@ -225,6 +249,27 @@ function Page() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="flex fixed bottom-0 w-1/4 justify-center items-center p-2">
+          {triedToSubmit === true ? (
+            <div className="flex flex-row flex-wrap m-2 p-2 gap-3">
+              <Link href={`${uri.exam}/analysis`}>
+              <button
+                style={{ backgroundColor: "#fa0478" }}
+                className="p-2 hover:bg-red rounded"
+                
+              >
+                Yes, Submit
+              </button>
+              </Link>
+              <button className="p-2 bg-blue-500 rounded" onClick={()=>setTriedToSubmit(false)}>Resume </button>
+            </div>
+          ) : (
+            <button className="rounded w-full bg-cyan-700 m-2 p-2 text-white font-bold hover:bg-cyan-500" onClick={()=>setTriedToSubmit(true)}>
+              Submit
+            </button>
+          )}
         </div>
       </div>
       <style jsx>{`

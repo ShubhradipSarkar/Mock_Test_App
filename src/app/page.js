@@ -1,6 +1,7 @@
 "use client"
 import Image from "next/image";
 import Link from "next/link";
+import Sidebar from "./components/Sidebar";
 
 export default function Home() {
   const teachers = [
@@ -17,16 +18,7 @@ export default function Home() {
     <div className="flex min-h-screen bg-slate-100">
       {/* Fixed Sidebar */}
       <div className="h-screen bg-stone-950 w-56 overflow-y-auto fixed">
-        <div className="m-2 p-2 text-2xl font-bold text-white">
-          Gurus
-        </div>
-        <ul className="text-slate-500">
-          {Array.from({ length: 20 }, (_, index) => (
-            <li key={index} className="p-2 m-2">
-              Sidebar Item {index + 1}
-            </li>
-          ))}
-        </ul>
+        <Sidebar />
       </div>
 
       {/* Main Content */}
