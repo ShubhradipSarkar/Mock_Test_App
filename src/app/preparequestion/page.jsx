@@ -25,13 +25,14 @@ function Page() {
   };
 
   const markOptionAsCorrect = (index) => {
+    // Toggle the isCorrect property and set the correctOptionIndex
     setoptions((prevOptions) =>
       prevOptions.map((option, optIndex) => ({
         ...option,
-        isCorrect: optIndex === index, // Mark only the selected option as correct
+        isCorrect: optIndex === index ? !option.isCorrect : false, // Toggle the selected option's state
       }))
     );
-    setCorrectOptionIndex(index);
+    setCorrectOptionIndex((prevIndex) => (prevIndex === index ? null : index));
   };
 
   const pushQuestionToSet = () => {
@@ -139,10 +140,10 @@ function Page() {
                     className="h-8 w-32 border-2 border-cyan-800 rounded"
                   />
                   <button
-                    className="bg-pink-600 hover:bg-pink-500 rounded p-1 text-white"
+                    className="bg-cyan-600 hover:bg-cyan-500 rounded p-1 text-white"
                     onClick={() => pushOptionsToQuestion(optionValue)}
                   >
-                    Push
+                    Add option
                   </button>
                 </div>
               )}
@@ -150,15 +151,17 @@ function Page() {
             <div className="flex flex-col gap-2 mt-2">
               {options.map((option, index) => (
                 <div key={index} className="flex items-center">
-                    Option {index+1})
-                  <div className="flex-1 flex w-48 m-1 bg-white justify-center items-center shadow-md rounded">{option.text}</div>
+                  Option {index + 1})
+                  <div className="flex-1 flex w-48 m-1 bg-white justify-center items-center shadow-md rounded">
+                    {option.text}
+                  </div>
                   <button
                     onClick={() => markOptionAsCorrect(index)}
                     className={`text-white p-1 rounded-full mr-2 ${
                       option.isCorrect ? "bg-green-500" : "bg-red-500"
                     }`}
                   >
-                    {option.isCorrect ? "✓" : "✗"}
+                    {option.isCorrect ? "Correct" : "Wrong"}
                   </button>
                 </div>
               ))}
